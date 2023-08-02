@@ -58,12 +58,15 @@ if __name__ == '__main__':
     predictor = DefaultPredictor(cfg)
     outputs = predictor(im)
 
+    # Print predictions
     print(outputs["instances"].pred_classes)
     print(outputs["instances"].pred_boxes)
 
+    # Draw instance predictions
     v = Visualizer(im[:, :, ::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
+    # Resize and show image
     resize2 = ResizeWithAspectRatio(out.get_image()[:, :, ::-1], width=1280)
     cv2.imshow('Image Window', resize2)
 
