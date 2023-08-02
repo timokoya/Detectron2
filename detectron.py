@@ -6,8 +6,6 @@ from detectron2.utils.logger import setup_logger
 import numpy as np
 import os, json, cv2, random
 
-import requests
-
 # import some common detectron2 utilities
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
@@ -15,6 +13,7 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
+# Resize with Aspect Ratio
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
     dim = None
     (h, w) = image.shape[:2]
@@ -41,28 +40,20 @@ if __name__ == '__main__':
     # Setup detectron2 logger
     setup_logger()
 
-
-    # Download an example image from the COCO Dataset 
-    #url = 'http://images.cocodataset.org/val2017/000000439715.jpg'
-    #r = requests.get(url, allow_redirects=True)
-    #open('input.jpg', 'wb').write(r.content)
-
-    # Load Image, show image and destroy image with escape key
-    #im = cv2.imread("./input.jpg")
-    im = cv2.imread("/home/timi/Desktop/sheep.png")
+    # Load Image and show image
+    im = cv2.imread("/home/timi/Desktop/fishes2.jpg")
     resize = ResizeWithAspectRatio(im, width=1280)
-    
-    cv2.imshow('Image', resize)
+
+    # Destroy Image with escape key
+    cv2.imshow('Image Window', resize)
     k = cv2.waitKey(0) & 0xFF
     if k == 27:
         cv2.destroyAllWindows()
 
     # Create a detectron2 config and a detectron2 DefaultPredictor to run inference on image
     cfg = get_cfg()
-    #cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
     cfg.merge_from_file(model_zoo.get_config_file("LVISv0.5-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_1x.yaml"))
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-    #cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("LVISv0.5-InstanceSegmentation/mask_rcnn_X_101_32x8d_FPN_1x.yaml")
     predictor = DefaultPredictor(cfg)
     outputs = predictor(im)
@@ -75,8 +66,8 @@ if __name__ == '__main__':
 
     resize2 = ResizeWithAspectRatio(out.get_image()[:, :, ::-1], width=1280)
     cv2.imshow('Image Window', resize2)
-    #cv2.imshow(out)
 
+    # Destroy Image with escape key
     k = cv2.waitKey(0) & 0xFF
     if k == 27:
         cv2.destroyAllWindows()
