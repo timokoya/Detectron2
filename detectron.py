@@ -41,7 +41,7 @@ if __name__ == '__main__':
     setup_logger()
 
     # Load Image and show image
-    im = cv2.imread("/home/timi/Desktop/fishes2.jpg")
+    im = cv2.imread("/home/timi/Desktop/fishes3.jpg")
     resize = ResizeWithAspectRatio(im, width=1280)
 
     # Destroy Image with escape key
