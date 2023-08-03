@@ -13,6 +13,7 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
+
 # Resize with Aspect Ratio
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
     dim = None
@@ -74,7 +75,3 @@ if __name__ == '__main__':
     k = cv2.waitKey(0) & 0xFF
     if k == 27:
         cv2.destroyAllWindows()
-
-    # from detectron2.data.datasets import register_coco_instances
-    # register_coco_instances("my_dataset_train", {}, "json_annotation_train.json", "path/to/image/dir")
-    # register_coco_instances("my_dataset_val", {}, "json_annotation_val.json", "path/to/image/dir")

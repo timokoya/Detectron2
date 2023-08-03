@@ -54,7 +54,6 @@ if __name__ == '__main__':
     # nuts_metadata = MetadataCatalog.get('fish_dataset_train')
     # dataset_dicts = DatasetCatalog.get("fish_dataset_train")
 
-
     # for d in random.sample(dataset_dicts, 3):
     #     img = cv2.imread(d["file_name"])
     #     img_resize = ResizeWithAspectRatio(img, width=1280)
