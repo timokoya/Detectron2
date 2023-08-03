@@ -1,0 +1,2 @@
+{"fast_rcnn/cls_accuracy": 0.08203125, "fast_rcnn/false_negative": 0.04878048780487805, "fast_rcnn/fg_cls_accuracy": 0.0, "iteration": 0, "roi_head/num_bg_samples": 107.5, "roi_head/num_fg_samples": 20.5, "rpn/num_neg_anchors": 247.5, "rpn/num_pos_anchors": 8.5}
+{"fast_rcnn/cls_accuracy": 0.6484375, "fast_rcnn/false_negative": 0.3, "fast_rcnn/fg_cls_accuracy": 0.23333333333333334, "iteration": 0, "roi_head/num_bg_samples": 113.0, "roi_head/num_fg_samples": 15.0, "rpn/num_neg_anchors": 241.5, "rpn/num_pos_anchors": 14.5}
