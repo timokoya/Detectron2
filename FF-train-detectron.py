@@ -19,6 +19,19 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 #     labels_path=labels_path,
 # )
 
+# dataset_name = 'ExampleDataset'
+# dataset_dir = f'/datasets/{dataset_name}'
+# labels_path = 'labels.json'
+
+# dataset = fo.Dataset.from_dir(
+#     dataset_type=fo.types.COCODetectionDataset,
+#     data_path=dataset_dir,
+#     labels_path=labels_path,
+#     name=dataset_name,
+# )
+# dataset.save()
+# dataset.view()
+
 # dataset = foz.load_zoo_dataset(
 #     "open-images-v7",
 #     split="validation",
@@ -67,23 +80,32 @@ if __name__ == '__main__':
     dataset2 = foz.load_zoo_dataset(
         "open-images-v7",
         split="validation",
-        label_types=["points", "detections"],
+        label_types=["segmentations"],
         classes=["Fish"],
         dataset_name="Fish2",
     )
 
+    # Remove other classes and existing tags
+    dataset2.filter_labels("detections", F("label") == "Fish").save()
+    dataset2.untag_samples("validation")
+
+    # Split dataset into training and validation
+    four.random_split(dataset2, {"train": 0.8, "val": 0.2})
+    
     for d in ["train", "val"]:
         view = dataset2.match_tags(d)
         DatasetCatalog.register("fiftyone_" + d, lambda view=view: get_fiftyone_dicts(view))
         MetadataCatalog.get("fiftyone_" + d).set(thing_classes=["Fish"])
 
     metadata = MetadataCatalog.get("fiftyone_train")
-    # Remove other classes and existing tags
-    dataset2.filter_labels("detections", F("label") == "Fish").save()
-    dataset2.untag_samples("validation")
 
-    four.random_split(dataset2, {"train": 0.8, "val": 0.2})
 
-    dataset2.persistent = True
-    session = fo.launch_app(dataset2)
-    session.wait()
+    dataset_dicts = get_fiftyone_dicts(dataset2.match_tags("train"))
+    ids = [dd["image_id"] for dd in dataset_dicts]
+
+    view = dataset2.select(ids)
+    session = fo.launch_app(view)
+    
+    # dataset2.persistent = True
+    # session = fo.launch_app(dataset2)
+    # session.wait()
