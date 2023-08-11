@@ -8,8 +8,9 @@ from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.engine import DefaultTrainer
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
+from detectron2.engine import DefaultPredictor
 
-import os
+import os, cv2
 
 def get_fiftyone_dicts(samples):
     samples.compute_metadata()
@@ -44,6 +45,37 @@ def get_fiftyone_dicts(samples):
 
     return dataset_dicts
 
+def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
+    dim = None
+    (h, w) = image.shape[:2]
+
+    if width is None and height is None:
+        return image
+    if width is None:
+        r = height / float(h)
+        dim = (int(w * r), height)
+    else:
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    return cv2.resize(image, dim, interpolation=inter)
+
+
+def detectron_to_fo(outputs, img_w, img_h):
+    # format is documented at https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
+    detections = []
+    instances = outputs["instances"].to("cpu")
+    for pred_box, score, c, mask in zip(
+        instances.pred_boxes, instances.scores, instances.pred_classes, instances.pred_masks,
+    ):
+        x1, y1, x2, y2 = pred_box
+        fo_mask = mask.numpy()[int(y1):int(y2), int(x1):int(x2)]
+        bbox = [float(x1)/img_w, float(y1)/img_h, float(x2-x1)/img_w, float(y2-y1)/img_h]
+        detection = fo.Detection(label="Fish", confidence=float(score), bounding_box=bbox, mask=fo_mask)
+        detections.append(detection)
+
+    return fo.Detections(detections=detections)
+
 if __name__ == '__main__':
 
     dataset2 = foz.load_zoo_dataset(
@@ -75,10 +107,10 @@ if __name__ == '__main__':
     dataset2.persistent = True
     # view = dataset2.select(ids)
     # session = fo.launch_app(view)
-    # session = fo.launch_app(dataset2)
+    session = fo.launch_app(dataset2)
     
     # session = fo.launch_app(dataset2)
-    # session.wait()
+    session.wait()
 
 # Create a detectron2 config and a detectron2 DefaultPredictor to run inference on image
 cfg = get_cfg()
@@ -99,3 +131,42 @@ os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 trainer = DefaultTrainer(cfg)
 trainer.resume_or_load(resume=False)
 trainer.train()
+
+cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")  # path to the model we just trained
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7   # set a custom testing threshold
+predictor = DefaultPredictor(cfg)
+
+val_view = dataset2.match_tags("val")
+dataset_dicts = get_fiftyone_dicts(val_view)
+predictions = {}
+for d in dataset_dicts:
+    img_w = d["width"]
+    img_h = d["height"]
+    img = cv2.imread(d["file_name"])
+    outputs = predictor(img)
+    detections = detectron_to_fo(outputs, img_w, img_h)
+    predictions[d["image_id"]] = detections
+
+dataset2.set_values("predictions", predictions, key_field="id")
+
+session = fo.launch_app(dataset2)
+
+session.freeze()
+
+results = dataset2.evaluate_detections(
+    "predictions",
+    gt_field="segmentations",
+    eval_key="eval",
+    use_masks=True,
+    compute_mAP=True,
+)
+
+results.mAP()
+
+results.print_report()
+
+results.plot_pr_curves()
+
+session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
+
+session.freeze()
