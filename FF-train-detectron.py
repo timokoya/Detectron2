@@ -110,7 +110,7 @@ if __name__ == '__main__':
     session = fo.launch_app(dataset2)
     
     # session = fo.launch_app(dataset2)
-    session.wait()
+    #session.wait()
 
 # Create a detectron2 config and a detectron2 DefaultPredictor to run inference on image
 cfg = get_cfg()
@@ -127,12 +127,14 @@ cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # The "RoIHead batch size". 128
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class (Fish). (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
 # NOTE: this config means the number of classes, but a few popular unofficial tutorials incorrect uses num_classes+1 here.
 
+
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 trainer = DefaultTrainer(cfg)
 trainer.resume_or_load(resume=False)
 trainer.train()
 
-cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")  # path to the model we just trained
+cfg.OUTPUT_DIR = "./output"
+cfg.MODEL.WEIGHTS = os.path.join("/home/timi/Detectron2/output/model_final.pth")  # path to the model we just trained
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7   # set a custom testing threshold
 predictor = DefaultPredictor(cfg)
 
@@ -151,7 +153,7 @@ dataset2.set_values("predictions", predictions, key_field="id")
 
 session = fo.launch_app(dataset2)
 
-session.freeze()
+#session.freeze()
 
 results = dataset2.evaluate_detections(
     "predictions",
@@ -169,4 +171,4 @@ results.plot_pr_curves()
 
 session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
 
-session.freeze()
+#session.freeze()
