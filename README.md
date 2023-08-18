@@ -3,7 +3,9 @@ Object Detection with Detectron2
 --------------------------------
 
 - Install Torch
+
 [GPU]pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+
 [CPU]pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
 - Install Detectron2 in a Conda environment
