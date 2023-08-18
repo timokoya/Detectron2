@@ -63,7 +63,7 @@ def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
 
     return cv2.resize(image, dim, interpolation=inter)
 
-
+# Convert outputs from detectron2 to FiftyOne format, then add them to our FiftyOne dataset.
 def detectron_to_fo(outputs, img_w, img_h):
     # format is documented at https://detectron2.readthedocs.io/tutorials/models.html#model-output-format
     detections = []
@@ -81,6 +81,7 @@ def detectron_to_fo(outputs, img_w, img_h):
 
 if __name__ == '__main__':
 
+    # Load dataset from Google Open Images v7
     dataset2 = foz.load_zoo_dataset(
         "open-images-v7",
         split="validation",
@@ -104,15 +105,8 @@ if __name__ == '__main__':
 
     metadata = MetadataCatalog.get("fiftyone_train")
 
-    # dataset_dicts = get_fiftyone_dicts(dataset2.match_tags("train"))
-    # ids = [dd["image_id"] for dd in dataset_dicts]
     dataset2.persistent = True
-    # view = dataset2.select(ids)
-    # session = fo.launch_app(view)
     session = fo.launch_app(dataset2)
-    
-    # session = fo.launch_app(dataset2)
-    #session.wait()
 
 # Create a detectron2 config and a detectron2 DefaultPredictor to run inference on image
 cfg = get_cfg()
@@ -134,11 +128,13 @@ trainer = DefaultTrainer(cfg)
 trainer.resume_or_load(resume=False)
 trainer.train()
 
+# Load saved model for prediction
 cfg.OUTPUT_DIR = "./output"
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")  # path to the model we just trained
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.8   # set a custom testing threshold
 predictor = DefaultPredictor(cfg)
 
+# Generate predictions on each sample in the validation set
 val_view = dataset2.match_tags("val")
 dataset_dicts = get_fiftyone_dicts(val_view)
 predictions = {}
@@ -149,7 +145,8 @@ for d in dataset_dicts:
     outputs = predictor(img)
     detections = detectron_to_fo(outputs, img_w, img_h)
     predictions[d["image_id"]] = detections
-
+    
+# Visualize predictions
     v = Visualizer(img[:, :, ::-1],
                    metadata=metadata, 
                    scale=0.8,
@@ -161,14 +158,10 @@ for d in dataset_dicts:
     k = cv2.waitKey(0) & 0xFF
     if k == 27:
         cv2.destroyAllWindows()
-    
 
 dataset2.set_values("predictions", predictions, key_field="id")
 
-# session = fo.launch_app(dataset2)
-
-# session.wait()
-
+# Evaluate and view predictions
 results = dataset2.evaluate_detections(
     "predictions",
     gt_field="segmentations",
@@ -178,11 +171,7 @@ results = dataset2.evaluate_detections(
 )
 
 results.mAP()
-
 results.print_report()
-
 results.plot_pr_curves()
-
 session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
-
 session.wait()
