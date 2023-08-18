@@ -9,6 +9,9 @@ from detectron2.engine import DefaultTrainer
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
+from detectron2.checkpoint import DetectionCheckpointer
+from detectron2.utils.visualizer import ColorMode
+from detectron2.utils.visualizer import Visualizer
 
 import os, cv2
 
@@ -83,7 +86,7 @@ if __name__ == '__main__':
         split="validation",
         label_types=["points", "segmentations", "detections"],
         classes=["Fish"],
-        dataset_name="Fishv8",
+        dataset_name="Fishv9",
         max_samples=100,
     )
 
@@ -103,7 +106,6 @@ if __name__ == '__main__':
 
     # dataset_dicts = get_fiftyone_dicts(dataset2.match_tags("train"))
     # ids = [dd["image_id"] for dd in dataset_dicts]
-    # dataset2.save()
     dataset2.persistent = True
     # view = dataset2.select(ids)
     # session = fo.launch_app(view)
@@ -127,15 +129,14 @@ cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   # The "RoIHead batch size". 128
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 1  # only has one class (Fish). (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
 # NOTE: this config means the number of classes, but a few popular unofficial tutorials incorrect uses num_classes+1 here.
 
-
 os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 trainer = DefaultTrainer(cfg)
 trainer.resume_or_load(resume=False)
 trainer.train()
 
 cfg.OUTPUT_DIR = "./output"
-cfg.MODEL.WEIGHTS = os.path.join("/home/timi/Detectron2/output/model_final.pth")  # path to the model we just trained
-cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7   # set a custom testing threshold
+cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")  # path to the model we just trained
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.8   # set a custom testing threshold
 predictor = DefaultPredictor(cfg)
 
 val_view = dataset2.match_tags("val")
@@ -149,11 +150,24 @@ for d in dataset_dicts:
     detections = detectron_to_fo(outputs, img_w, img_h)
     predictions[d["image_id"]] = detections
 
+    v = Visualizer(img[:, :, ::-1],
+                   metadata=metadata, 
+                   scale=0.8,
+                   instance_mode=ColorMode.IMAGE   
+    )
+    v = v.draw_instance_predictions(outputs["instances"].to("cpu")) #Passing the predictions to CPU from the GPU
+    resize = ResizeWithAspectRatio(v.get_image()[:, :, ::-1], width=1280)
+    cv2.imshow('Image Window', resize)
+    k = cv2.waitKey(0) & 0xFF
+    if k == 27:
+        cv2.destroyAllWindows()
+    
+
 dataset2.set_values("predictions", predictions, key_field="id")
 
-session = fo.launch_app(dataset2)
+# session = fo.launch_app(dataset2)
 
-#session.freeze()
+# session.wait()
 
 results = dataset2.evaluate_detections(
     "predictions",
@@ -171,4 +185,4 @@ results.plot_pr_curves()
 
 session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
 
-#session.freeze()
+session.wait()
