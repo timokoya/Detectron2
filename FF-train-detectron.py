@@ -131,7 +131,7 @@ trainer.train()
 # Load saved model for prediction
 cfg.OUTPUT_DIR = "./output"
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")  # path to the model we just trained
-cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.8   # set a custom testing threshold
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5   # set a custom testing threshold
 predictor = DefaultPredictor(cfg)
 
 # Generate predictions on each sample in the validation set
@@ -170,8 +170,20 @@ results = dataset2.evaluate_detections(
     compute_mAP=True,
 )
 
-results.mAP()
-results.print_report()
-results.plot_pr_curves()
+# Print Mean Average precision
+print(results.mAP())
+
+# Print a classification report
+print(results.print_report())
+
+# Plot a PR curve
+plot = results.plot_pr_curves()
+plot.show()
+
+# Generate a confusion matrix for the specified class
+plot = results.plot_confusion_matrix(classes=["Fish"])
+plot.show()
+
+# View Fiftyone portal with filter labels
 session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
 session.wait()
