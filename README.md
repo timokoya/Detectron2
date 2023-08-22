@@ -44,3 +44,10 @@ Scripts
 - test-FF.py: Test script to load a sample fiftyone dataset and view via the fiftyone portal
 
 - train_detectron.py: Train Detectron2 with a obscure fish dataset in COCO format and make inference
+
+Common Problems
+---------------
+
+- RuntimeError: CUDA error: out of memory
+
+Simply restart the kernel
