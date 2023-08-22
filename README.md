@@ -73,3 +73,9 @@ Dataset
 Fiftyone was used to extract a fish detection dataset from Google Open Images v7
 
 https://storage.googleapis.com/openimages/web/index.html
+
+
+Training
+--------
+
+Approx Time: 2.30 min
