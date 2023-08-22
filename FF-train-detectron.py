@@ -1,8 +1,10 @@
+# import some common fiftyone utilities
 import fiftyone as fo
 import fiftyone.zoo as foz
 from fiftyone import ViewField as F
 import fiftyone.utils.random as four
 
+# import some common detectron2 utilities
 from detectron2.structures import BoxMode
 from detectron2.data import MetadataCatalog, DatasetCatalog
 from detectron2.engine import DefaultTrainer
@@ -13,8 +15,10 @@ from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.utils.visualizer import ColorMode
 from detectron2.utils.visualizer import Visualizer
 
+# import some common libraries
 import os, cv2
 
+# register the FiftyOne dataset to detectron2
 def get_fiftyone_dicts(samples):
     samples.compute_metadata()
 
@@ -48,6 +52,7 @@ def get_fiftyone_dicts(samples):
 
     return dataset_dicts
 
+# Resize with Aspect Ratio
 def ResizeWithAspectRatio(image, width=None, height=None, inter=cv2.INTER_AREA):
     dim = None
     (h, w) = image.shape[:2]
@@ -97,7 +102,7 @@ if __name__ == '__main__':
 
     # Split dataset into training and validation
     four.random_split(dataset2, {"train": 0.8, "val": 0.2})
-    
+
     for d in ["train", "val"]:
         view = dataset2.match_tags(d)
         DatasetCatalog.register("fiftyone_" + d, lambda view=view: get_fiftyone_dicts(view))
