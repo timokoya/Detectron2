@@ -2,13 +2,17 @@
 Required Installation
 ---------------------
 
+- Install Conda
+
+https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html
+
 - Install Torch:
 
 [GPU] pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 
 [CPU] pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
-- Install Detectron2 in a Conda environment: 
+- Install Detectron2: 
 
 $ python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
   
