@@ -49,10 +49,10 @@ Scripts
 
 - train_detectron.py: Train Detectron2 with a obscure fish dataset in COCO format and make inference
 
-Common Problems
+Solved Problems
 ---------------
 
-- RuntimeError: CUDA error: out of memory
+- (training) RuntimeError: CUDA error: out of memory (after multiple consecutive training attempts)
 
 Simply restart the kernel
 
