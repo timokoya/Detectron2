@@ -161,7 +161,7 @@ for d in dataset_dicts:
 
 ########## Prediction on a single specific image ##########
 # Load Image
-    im = cv2.imread("/home/timi/Desktop/11.jpeg")
+    im = cv2.imread("/home/timi/Desktop/11.jpeg") # Point to your own preferred image
     resize = ResizeWithAspectRatio(im, width=1280)
 
 predictor = DefaultPredictor(cfg)
