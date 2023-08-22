@@ -1,27 +1,46 @@
 # Detectron2
-Object Detection with Detectron2
---------------------------------
+Required Installation
+---------------------
 
-- Install Torch
+- Install Torch:
 
-[GPU]pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+[GPU] pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
 
-[CPU]pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+[CPU] pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
-- Install Detectron2 in a Conda environment
+- Install Detectron2 in a Conda environment: 
+
 $ python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
   
-- Install Fiftyone
+- Install Fiftyone: 
+
 $ pip install fiftyone
 
-- Install ipywidgets
+- Install ipywidgets: 
+
 $ pip install ipywidgets
 
-- Install shapely
+- Install shapely: 
+
 $ pip install shapely
+
+Useful Tutorials
+----------------
 
 - Run Inference on Images or Videos, with an existing detectron2 model
  https://colab.research.google.com/drive/16jcaJoc6bCFAQ96jDe2HwtXj7BMD_-m5#scrollTo=QHnVupBBn9eR
   
 - Training and Evaluating FiftyOne Datasets with Detectron2
 https://docs.voxel51.com/tutorials/detectron2.html
+
+
+Scripts
+-------
+
+- FF-train-detectron.py: Train Detectron2 with a dataset loaded via Fiftyone
+
+- predict-detectron.py: Inference on an image using a model from the Model-Zoo
+
+- test-FF.py: Test script to load a sample fiftyone dataset and view via the fiftyone portal
+
+- train_detectron.py: Train Detectron2 with a obscure fish dataset in COCO format and make inference

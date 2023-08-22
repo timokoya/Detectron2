@@ -154,10 +154,36 @@ for d in dataset_dicts:
     )
     v = v.draw_instance_predictions(outputs["instances"].to("cpu")) #Passing the predictions to CPU from the GPU
     resize = ResizeWithAspectRatio(v.get_image()[:, :, ::-1], width=1280)
-    cv2.imshow('Image Window', resize)
+    #cv2.imshow('Image Window', resize)         # display image with predictions
     k = cv2.waitKey(0) & 0xFF
     if k == 27:
         cv2.destroyAllWindows()
+
+########## Prediction on a single specific image ##########
+# Load Image
+    im = cv2.imread("/home/timi/Desktop/11.jpeg")
+    resize = ResizeWithAspectRatio(im, width=1280)
+
+predictor = DefaultPredictor(cfg)
+outputs = predictor(im)
+
+# Print predictions
+print(outputs["instances"].pred_classes)
+print(outputs["instances"].pred_boxes)
+
+# Draw instance predictions
+v = Visualizer(im[:, :, ::-1], metadata, scale=0.8, instance_mode=ColorMode.IMAGE)
+out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+# Resize and show image
+resize2 = ResizeWithAspectRatio(out.get_image()[:, :, ::-1], width=1280)
+cv2.imshow('Image Window', resize2)
+
+# Destroy Image with escape key
+k = cv2.waitKey(0) & 0xFF
+if k == 27:
+    cv2.destroyAllWindows()
+###########
 
 dataset2.set_values("predictions", predictions, key_field="id")
 
@@ -171,10 +197,7 @@ results = dataset2.evaluate_detections(
 )
 
 # Print Mean Average precision
-print(results.mAP())
-
-# Print a classification report
-print(results.print_report())
+print('Mean Average Precision: ' + str(results.mAP()))
 
 # Plot a PR curve
 plot = results.plot_pr_curves()
@@ -186,4 +209,3 @@ plot.show()
 
 # View Fiftyone portal with filter labels
 session.view = dataset2.filter_labels("predictions", (F("eval") == "fp") & (F("confidence") > 0.8))
-session.wait()
